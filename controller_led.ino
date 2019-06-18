@@ -1,3 +1,4 @@
+// Define the const variables and the pins output of colors 
 const int red_control = 2;          
 const int blue_control = 4;
 const int green_control = 3;
@@ -15,14 +16,15 @@ void setup() {
 
 // the loop routine runs over and over again forever:
 void loop() {
+  //Variables to store the 0-255 color rgb and read
   unsigned int sample;
   int red_color = 0;
   int blue_color = 0;
-  int green_color = 0;
+  int green_color = 0; 
   unsigned long startMillis= millis();  // Start of sample window
   unsigned int peakToPeak = 0;   // peak-to-peak level
-  unsigned int signalMax = 0;
-  unsigned int signalMin = 1024;
+  unsigned int signalMax = 0;    // Variable to take the Max tension signal in the sample window
+  unsigned int signalMin = 1024; // Variable to take the Min tension signal in the sample window
   
    // collect data for 50 mS
    // 506 MAX
@@ -37,10 +39,12 @@ void loop() {
          }
       }
    }
+   //Calculate the Peak-to-Peak tension
    peakToPeak = signalMax - signalMin;
    
+   //Convert the peak to peak into colors
    pitchConv(peakToPeak,&red_color,&blue_color,&green_color);  
-   
+   //Output the colors values
    analogWrite(red_control, red_color);
    analogWrite(blue_control, blue_color);
    analogWrite(green_control, green_color);
@@ -48,7 +52,7 @@ void loop() {
 }
 /**
  * Converts the analog brightness reading into a percentage
- * 100% brightness is 614.. about 3 volts based on frequency to voltage converter circuit
+ * 100% brightness is 614.. about 3 volts on circuit
  * The resulting percentage can simply be multiplied on the rgb values when setting our colors,
  * for example black is (0,0,0) so when volume is off we get 0v and all colors are black (leds are off)
  */
@@ -64,16 +68,23 @@ double convBrightness(int b) {
   }
   return c;
 }
-
+/*
+* This function sets the values into pointer of colors
+*/
 void setColor(int a,int ba,int c,int *r,int *b, int *g){
   *(r) = a;
   *(b) = ba;
   *(g) = c;
 }
+/*
+* Converts the tension into colors, takes the peak-to-peak and 
+* the pointers of colors variables
+*/
 
 void pitchConv(int p,int *r,int *b,int *g){
   double bright = convBrightness(p);
  
+ // Map the colors according the peak-to-peak value
  if(p <= 70) {
     int cor_b = p*255.0/70.0;
      setColor(255, 0, cor_b,r,b,g);
@@ -104,6 +115,8 @@ void pitchConv(int p,int *r,int *b,int *g){
   else {
     setColor(255, 0, 0,r,b,g);
   }
+
+  //Multiple the colors by the brightness value
   *(r) = *(r)*bright;
   *(b) = *(b)*bright;
   *(g) = *(g)*bright;
